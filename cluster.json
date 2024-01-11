@@ -26,4 +26,10 @@
               "partition": "largemem",
               "threads": "8",
       },
+      "gff2gtf": {
+              "mem": "32g",
+              "time": "24:00:00",
+              "partition": "norm",
+              "threads": "2",
+      },
 }
