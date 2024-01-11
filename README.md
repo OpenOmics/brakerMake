@@ -1,4 +1,4 @@
-# annotateMake
+# brakeMake
 A repository for the Braker Snakemake pipeline, designed to be run on the completed assemblies, after assembly & scaffolding.
 
 
