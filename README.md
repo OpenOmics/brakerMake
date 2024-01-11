@@ -10,6 +10,7 @@ Edit the config.yaml as follows:
  * Change 'protein_file' to the path/location of the proteins for this species, or a closely related species.
  * Change 'rna_dir' to the location where bulk RNA sequencing files are stored to be used for transcriptome generation.
  * Change 'rna_list' to the list of IDs for files within the rna_dir. Can also include SRA IDs which will be downloaded and used for the annotation.
+ * Change 'script_dir' to the path that this github directory has, to use clean_gtf.py.
 
 ### Test running the pipeline
 
