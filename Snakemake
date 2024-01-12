@@ -22,6 +22,7 @@ rule All:
     input:
         # Repeats
         expand(join(result_dir,"{samples}-families.fa"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}.softMasked.fa"),samples=SAMPLE),
         expand(join(result_dir,"{samples}.fasta.masked"),samples=SAMPLE),
         expand(join(result_dir,"{samples}.fasta.out.gff"),samples=SAMPLE),
 
@@ -45,7 +46,7 @@ rule All:
 
 rule braker:
     input:
-        fa=join(input_dir, "{samples}.fasta"),
+        fa=join(input_dir, "{samples}.softMasked.fasta"),
         prot=protein_file,
     output:
         gff=join(result_dir, "{samples}_braker/braker.gff3"),
@@ -168,6 +169,20 @@ rule RepeatMasker:
     module load repeatmasker
     RepeatMasker -u -s -poly -engine rmblast -pa {params.threads} -gff -no_is -gccalc -norna -lib {input.rep} {input.fa}
     """
+
+rule softMask:
+    input:
+        fa=join(result_dir, "{samples}.fasta"),
+        gff=join(result_dir,"{samples}.fasta.out.gff"),
+    output:
+        fa=join(result_dir, "{samples}.softMasked.fasta"),
+    params:
+        rname="softMask",
+    shell:
+        """
+        module load bedtools
+        bedtools maskfasta -fullHeader -soft -fi {input.fa} -bed {input.gff} -fo {output.fa}
+        """
 
 rule gff2gtf:
     input:
