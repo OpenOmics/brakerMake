@@ -22,7 +22,7 @@ rule All:
     input:
         # Repeats
         expand(join(result_dir,"{samples}-families.fa"),samples=SAMPLE),
-        expand(join(result_dir,"{samples}.softMasked.fa"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}.softMasked.fasta"),samples=SAMPLE),
         expand(join(result_dir,"{samples}.fasta.masked"),samples=SAMPLE),
         expand(join(result_dir,"{samples}.fasta.out.gff"),samples=SAMPLE),
 
@@ -46,11 +46,10 @@ rule All:
 
 rule braker:
     input:
-        fa=join(input_dir, "{samples}.softMasked.fasta"),
+        fa=join(result_dir, "{samples}.softMasked.fasta"),
         prot=protein_file,
     output:
         gff=join(result_dir, "{samples}_braker/braker.gff3"),
-        gtf=join(result_dir, "{samples}_braker/braker.gtf"),
         aa=join(result_dir, "{samples}_braker/braker.aa"),
         cds=join(result_dir, "{samples}_braker/braker.codingseq"),
     params:
