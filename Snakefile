@@ -149,25 +149,11 @@ rule gff_rename:
         map_fasta_ids {output.map} {output.cds}
         """
 
-rule uniprot:
-    input:
-        fa=expand(join(input_dir, "{samples}.fasta"),samples=SAMPLE),
-    output:
-        uniprot=temp("uniprot_sprot.fasta"),
-    params:
-        rname="uniprot",
-    shell:
-        """
-        wget ftp://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
-        gunzip uniprot_sprot.fasta.gz
-        """
-
 rule gff_annot:
     input:
         gff=join(result_dir, "{samples}_braker.gff3"),
         prot=join(result_dir, "{samples}_braker.aa"),
         cds=join(result_dir, "{samples}_braker.cds"),
-        uniprot="uniprot_sprot.fasta",
     output:
         gff=join(result_dir, "{samples}_braker.functional.gff3"),
         prot=join(result_dir, "{samples}_braker.functional.aa"),
@@ -176,11 +162,11 @@ rule gff_annot:
     params:
         rname="gff_annot",
         threads=8,
+        uniprot=protein_file,
     shell:
         """
         module load blast maker
-        makeblastdb -dbtype prot -in {input.uniprot}
-        blastp -query {input.prot} -db {input.uniprot} -evalue 1e-6 -max_hsps 1 -max_target_seqs 1 -outfmt 6 -out {output.blast} -num_threads {params.threads}
+        blastp -query {input.prot} -db {params.uniprot} -evalue 1e-6 -max_hsps 1 -max_target_seqs 1 -outfmt 6 -out {output.blast} -num_threads {params.threads}
         maker_functional_gff {input.uniprot} {output.blast} {input.gff} > {output.gff}
         maker_functional_fasta {input.uniprot} {output.blast} {input.prot} > {output.prot}
         maker_functional_fasta {input.uniprot} {output.blast} {input.cds} > {output.cds}
