@@ -191,7 +191,7 @@ rule gff2gtf:
         clean=join(result_dir,"{samples}_braker/braker.clean.gtf"),
     params:
         rname="gff2gtf",
-        dir=script_dir,
+        script_dir=script_dir,
     shell:
         """
         module load agat python
