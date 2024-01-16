@@ -44,6 +44,62 @@ rule All:
         expand(join(result_dir,"{samples}_braker.functional.aa"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker.functional.cds"),samples=SAMPLE),
 
+# Blasts genome against itself to identify highly repetitve regions which it then attempts to classify.
+rule RepeatModeler:
+  input:
+    fa=join(input_dir, "{samples}.fasta"),
+  output:
+    fa=join(result_dir, "{samples}.fasta"),
+    rep=join(result_dir,"{samples}-families.fa"),
+  params:
+    rname="RepeatModeler",
+    dir=result_dir,
+    id="{samples}",
+  threads:
+    48
+  shell:
+    """
+    cd {params.dir}
+    module load repeatmodeler
+    ln -s {input.fa} {output.fa}
+    BuildDatabase -name {params.id} {output.fa}
+    RepeatModeler -database {params.id} -pa {threads} -LTRStruct >& {params.id}.out
+    """
+
+# Blasts genome using generated repeats to identify the loci for each repeat.
+rule RepeatMasker:
+  input:
+    fa=join(result_dir, "{samples}.fasta"),
+    rep=join(result_dir,"{samples}-families.fa"),
+  output:
+    fa=join(result_dir,"{samples}.fasta.masked"),
+    gff=join(result_dir,"{samples}.fasta.out.gff"),
+  params:
+    rname="RepeatMasker",
+    dir=result_dir,
+    threads="48",
+  shell:
+    """
+    cd {params.dir}
+    module load repeatmasker
+    RepeatMasker -u -s -poly -engine rmblast -pa {params.threads} -gff -no_is -gccalc -norna -lib {input.rep} {input.fa}
+    """
+
+# Softmask repeats in genome for braker step
+rule softMask:
+    input:
+        fa=join(result_dir, "{samples}.fasta"),
+        gff=join(result_dir,"{samples}.fasta.out.gff"),
+    output:
+        fa=join(result_dir, "{samples}.softMasked.fasta"),
+    params:
+        rname="softMask",
+    shell:
+        """
+        module load bedtools
+        bedtools maskfasta -fullHeader -soft -fi {input.fa} -bed {input.gff} -fo {output.fa}
+        """
+
 rule braker:
     input:
         fa=join(result_dir, "{samples}.softMasked.fasta"),
@@ -128,59 +184,6 @@ rule gff_annot:
         maker_functional_gff {input.uniprot} {output.blast} {input.gff} > {output.gff}
         maker_functional_fasta {input.uniprot} {output.blast} {input.prot} > {output.prot}
         maker_functional_fasta {input.uniprot} {output.blast} {input.cds} > {output.cds}
-        """
-
-rule RepeatModeler:
-  input:
-    fa=join(input_dir, "{samples}.fasta"),
-  output:
-    fa=join(result_dir, "{samples}.fasta"),
-    rep=join(result_dir,"{samples}-families.fa"),
-  params:
-    rname="RepeatModeler",
-    dir=result_dir,
-    id="{samples}",
-  threads:
-    48
-  shell:
-    """
-    cd {params.dir}
-    module load repeatmodeler
-    ln -s {input.fa} {output.fa}
-    BuildDatabase -name {params.id} {output.fa}
-    RepeatModeler -database {params.id} -pa {threads} -LTRStruct >& {params.id}.out
-    """
-
-rule RepeatMasker:
-  input:
-    fa=join(result_dir, "{samples}.fasta"),
-    rep=join(result_dir,"{samples}-families.fa"),
-  output:
-    fa=join(result_dir,"{samples}.fasta.masked"),
-    gff=join(result_dir,"{samples}.fasta.out.gff"),
-  params:
-    rname="RepeatMasker",
-    dir=result_dir,
-    threads="48",
-  shell:
-    """
-    cd {params.dir}
-    module load repeatmasker
-    RepeatMasker -u -s -poly -engine rmblast -pa {params.threads} -gff -no_is -gccalc -norna -lib {input.rep} {input.fa}
-    """
-
-rule softMask:
-    input:
-        fa=join(result_dir, "{samples}.fasta"),
-        gff=join(result_dir,"{samples}.fasta.out.gff"),
-    output:
-        fa=join(result_dir, "{samples}.softMasked.fasta"),
-    params:
-        rname="softMask",
-    shell:
-        """
-        module load bedtools
-        bedtools maskfasta -fullHeader -soft -fi {input.fa} -bed {input.gff} -fo {output.fa}
         """
 
 rule gff2gtf:
