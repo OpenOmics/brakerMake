@@ -100,6 +100,7 @@ rule softMask:
         bedtools maskfasta -fullHeader -soft -fi {input.fa} -bed {input.gff} -fo {output.fa}
         """
 
+# Identifies and annotates genes and transcripts in the softmasked genome, using protein sequences and bulk RNAseq data.
 rule braker:
     input:
         fa=join(result_dir, "{samples}.softMasked.fasta"),
@@ -124,6 +125,7 @@ rule braker:
         --rnaseq_sets_dir={params.rna_dir}
         """
 
+# Rename gene IDs with custom ID
 rule gff_rename:
     input:
         gff=join(result_dir, "{samples}_braker/braker.gff3"),
@@ -149,6 +151,7 @@ rule gff_rename:
         map_fasta_ids {output.map} {output.cds}
         """
 
+# Annotate genes with functional use based on uniprot DB
 rule gff_annot:
     input:
         gff=join(result_dir, "{samples}_braker.gff3"),
@@ -172,12 +175,13 @@ rule gff_annot:
         maker_functional_fasta {input.uniprot} {output.blast} {input.cds} > {output.cds}
         """
 
+# Clean & convert gff to gtf for use in RNA-seek
 rule gff2gtf:
     input:
-        gff=join(result_dir,"{samples}_braker/braker.gff3"),
+        gff=join(result_dir,"{samples}_braker.functional.gff3"),
     output:
-        gtf=join(result_dir,"{samples}_braker/braker.gtf"),
-        clean=join(result_dir,"{samples}_braker/braker.clean.gtf"),
+        gtf=join(result_dir,"{samples}_braker.functional.gtf"),
+        clean=join(result_dir,"{samples}_braker.functional.clean.gtf"),
     params:
         rname="gff2gtf",
         script_dir=script_dir,
@@ -185,5 +189,5 @@ rule gff2gtf:
         """
         module load agat python
         agat_convert_sp_gff2gtf.pl --gff {input.gff} -o {output.gtf}
-        {params.script_dir}/clean_gtf.py {output.gtf} > {output.clean}
+        python {params.script_dir}/clean_gtf.py {output.gtf} > {output.clean}
         """
