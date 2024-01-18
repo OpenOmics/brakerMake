@@ -184,10 +184,9 @@ rule gff2gtf:
         clean=join(result_dir,"{samples}_braker.functional.clean.gtf"),
     params:
         rname="gff2gtf",
-        script_dir=script_dir,
     shell:
         """
         module load agat python
         agat_convert_sp_gff2gtf.pl --gff {input.gff} -o {output.gtf}
-        python {params.script_dir}/clean_gtf.py {output.gtf} > {output.clean}
+        python /data/OpenOmics/references/brakerMake/clean_gtf.py {output.gtf} > {output.clean}
         """
