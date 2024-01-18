@@ -1,7 +1,7 @@
 # brakeMake
 A repository for the Braker Snakemake pipeline, designed to be run on the completed assemblies, after assembly & scaffolding.
 
-![](pipeline_rulegraph.svg)
+![](pipeline_rulegraph_new.svg)
 
 ### Before running the pipeline
 Edit the config.yaml as follows:
