@@ -1,16 +1,15 @@
 # brakeMake
 A repository for the Braker Snakemake pipeline, designed to be run on the completed assemblies, after assembly & scaffolding.
 
+![](pipeline_rulegraph.svg)
 
 ### Before running the pipeline
 Edit the config.yaml as follows:
 
  * Update 'input_dir' to be the path where all assemblies you want to annotate are stored. Make sure that all assemblies end in '.fasta'.
  * Update 'results_dir' to the path where all results will be stored.
- * Change 'protein_file' to the path/location of the proteins for this species, or a closely related species.
  * Change 'rna_dir' to the location where bulk RNA sequencing files are stored to be used for transcriptome generation.
- * Change 'rna_list' to the list of IDs for files within the rna_dir. Can also include SRA IDs which will be downloaded and used for the annotation.
- * Change 'script_dir' to the path that this github directory has, to use clean_gtf.py.
+ * Change 'rna_list' to the list of IDs for files within the rna_dir. Can also include SRA IDs which are not in the rna_dir, these will be downloaded and used for the annotation.
 
 ### Test running the pipeline
 
