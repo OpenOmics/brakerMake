@@ -104,7 +104,6 @@ rule softMask:
 rule braker:
     input:
         fa=join(result_dir, "{samples}.softMasked.fasta"),
-        prot=protein_file,
     output:
         gff=join(result_dir, "{samples}_braker/braker.gff3"),
         aa=join(result_dir, "{samples}_braker/braker.aa"),
@@ -115,12 +114,13 @@ rule braker:
         out_dir=join(result_dir,"{samples}_braker"),
         rna_dir=rna_dir,
         rna_list=rna_list,
+        prot=protein_file,
     shell:
         """
         module load braker
         mkdir -p {params.out_dir}
         braker.pl --genome={input.fa} --useexisting --species={params.species_id} \
-        --prot_seq={input.prot} --workingdir={params.out_dir} \
+        --prot_seq={params.prot} --workingdir={params.out_dir} \
         --gff3 --threads=8 --rnaseq_sets_ids={params.rna_list}  \
         --rnaseq_sets_dir={params.rna_dir}
         """
