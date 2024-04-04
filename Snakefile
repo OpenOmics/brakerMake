@@ -151,6 +151,7 @@ rule gff_rename:
         """
 
 # Annotate genes with functional use based on uniprot DB
+# Note, if you are not using the default uniprot protein DB, you must make your custom protein fasta file a blastp database before running this step.
 rule gff_annot:
     input:
         gff=join(result_dir, "{samples}_braker.gff3"),
