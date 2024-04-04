@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-module load python
-module load snakemake/7
+module load python/3.8
+module load snakemake/5.24.1
 
 R=$2
 
