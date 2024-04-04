@@ -8,8 +8,9 @@ Edit the config.yaml as follows:
 
  * Update 'input_dir' to be the path where all assemblies you want to annotate are stored. Make sure that all assemblies end in '.fasta'.
  * Update 'results_dir' to the path where all results will be stored.
- * Change 'rna_dir' to the location where bulk RNA sequencing files are stored to be used for transcriptome generation.
- * Change 'rna_list' to the list of IDs for files within the rna_dir. Can also include SRA IDs which are not in the rna_dir, these will be downloaded and used for the annotation.
+ * Change 'rna_dir' to the location where bulk RNA sequencing files are stored to be used for transcriptome generation. Even when no RNAseq is used this needs to be an existing directory.
+ * Change 'rna_list' to the list of IDs for files within the rna_dir. Can also include SRA IDs which are not in the rna_dir, these will be downloaded and used for the annotation. If no RNAseq is used, leave this section empty.
+ * If you do not wish to use the uniprot protein DB, 'protein_file' needs to be updated to the path to a fasta file of amino acid sequences to use.
 
 ### Test running the pipeline
 
