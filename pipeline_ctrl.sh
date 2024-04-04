@@ -2,8 +2,7 @@
 set -e
 
 module load python
-module load snakemake/5
-#module load snakemake
+module load snakemake/7
 
 R=$2
 
