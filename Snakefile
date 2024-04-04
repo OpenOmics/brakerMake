@@ -9,7 +9,6 @@ from Bio import SeqIO
 result_dir = config["result_dir"]
 input_dir = config["input_dir"]
 rna_dir = config["rna_dir"]
-script_dir = config["script_dir"]
 
 protein_file = config["protein_file"]
 rna_list = config["rna_list"]
