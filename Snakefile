@@ -169,9 +169,9 @@ rule gff_annot:
         """
         module load blast maker
         blastp -query {input.prot} -db {params.uniprot} -evalue 1e-6 -max_hsps 1 -max_target_seqs 1 -outfmt 6 -out {output.blast} -num_threads {params.threads}
-        maker_functional_gff {input.uniprot} {output.blast} {input.gff} > {output.gff}
-        maker_functional_fasta {input.uniprot} {output.blast} {input.prot} > {output.prot}
-        maker_functional_fasta {input.uniprot} {output.blast} {input.cds} > {output.cds}
+        maker_functional_gff {params.uniprot} {output.blast} {input.gff} > {output.gff}
+        maker_functional_fasta {params.uniprot} {output.blast} {input.prot} > {output.prot}
+        maker_functional_fasta {params.uniprot} {output.blast} {input.cds} > {output.cds}
         """
 
 # Clean & convert gff to gtf for use in RNA-seek
