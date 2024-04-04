@@ -4,7 +4,6 @@
 ###########################################################################
 from os.path import join
 from snakemake.io import expand, glob_wildcards
-from Bio import SeqIO
 
 result_dir = config["result_dir"]
 input_dir = config["input_dir"]
