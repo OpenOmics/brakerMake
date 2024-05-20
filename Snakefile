@@ -31,7 +31,7 @@ rule All:
 
         # renamed file
         expand(join(result_dir,"{samples}_braker.gff3"),samples=SAMPLE),
-        expand(join(result_dir,"{samples}_braker.aa"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}_braker.prot"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker.cds"),samples=SAMPLE),
 
         # functional file
@@ -131,7 +131,7 @@ rule gff_rename:
     output:
         map=temp(join(result_dir, "{samples}.map")),
         gff=join(result_dir, "{samples}_braker.gff3"),
-        aa=join(result_dir, "{samples}_braker.aa"),
+        aa=join(result_dir, "{samples}_braker.prot"),
         cds=join(result_dir, "{samples}_braker.cds"),
     params:
         species_id="{samples}",
@@ -153,7 +153,7 @@ rule gff_rename:
 rule gff_annot:
     input:
         gff=join(result_dir, "{samples}_braker.gff3"),
-        prot=join(result_dir, "{samples}_braker.aa"),
+        prot=join(result_dir, "{samples}_braker.prot"),
         cds=join(result_dir, "{samples}_braker.cds"),
     output:
         gff=join(result_dir, "{samples}_braker.functional.gff3"),
