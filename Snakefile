@@ -26,11 +26,8 @@ rule All:
 
         # braker files
         expand(join(result_dir,"{samples}_braker/braker.gff3"),samples=SAMPLE),
-        expand(join(result_dir,"{samples}_braker/braker.gtf"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.aa"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.codingseq"),samples=SAMPLE),
-        expand(join(result_dir,"{samples}_braker/braker.gtf"),samples=SAMPLE),
-        expand(join(result_dir,"{samples}_braker/braker.clean.gtf"),samples=SAMPLE),
 
         # renamed file
         expand(join(result_dir,"{samples}_braker.gff3"),samples=SAMPLE),
@@ -39,6 +36,8 @@ rule All:
 
         # functional file
         expand(join(result_dir,"{samples}_braker.functional.gff3"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}_braker.functional.gtf"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}_braker.functional.clean.gtf"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker.functional.aa"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker.functional.cds"),samples=SAMPLE),
 
