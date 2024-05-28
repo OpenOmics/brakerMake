@@ -27,6 +27,7 @@ rule All:
         # braker files
         expand(join(result_dir, "{samples}_braker/trna.gff3"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.gff3"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}_braker/braker_merge.gff3"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.aa"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.codingseq"),samples=SAMPLE),
 
@@ -134,11 +135,24 @@ rule trnascan:
         module load trnascan-se/2.0.9
         tRNAscan-SE -j {output.gff} {input.fa}
         """
+rule merge:
+    input:
+        gff1=join(result_dir, "{samples}_braker/trna.gff3"),
+        gff2=join(result_dir, "{samples}_braker/braker.gff3),
+    output:
+        gff=join(result_dir, "{samples}_braker/braker_merge.gff3"),
+    params:
+        rname="merge",
+    shell:
+        """
+        module load agat/1.2.0
+        agat_sp_merge_annotations.pl --gff {input.gff1} --gff {input.gff2} --out (output.gff)
+        """
 
 # Rename gene IDs with custom ID
 rule gff_rename:
     input:
-        gff=join(result_dir, "{samples}_braker/braker.gff3"),
+        gff=join(result_dir, "{samples}_braker/braker_merge.gff3"),
         aa=join(result_dir, "{samples}_braker/braker.aa"),
         cds=join(result_dir, "{samples}_braker/braker.codingseq"),
     output:
