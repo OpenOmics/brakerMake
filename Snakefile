@@ -25,6 +25,7 @@ rule All:
         expand(join(result_dir,"{samples}.fasta.out.gff"),samples=SAMPLE),
 
         # braker files
+        expand(join(result_dir, "{samples}_braker/trna.gff3"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.gff3"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.aa"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.codingseq"),samples=SAMPLE),
@@ -120,6 +121,18 @@ rule braker:
         --prot_seq={params.prot} --workingdir={params.out_dir} \
         --gff3 --threads=8 --rnaseq_sets_ids={params.rna_list}  \
         --rnaseq_sets_dir={params.rna_dir}
+        """
+rule trnascan:
+    input:
+        fa=join(result_dir, "{samples}.softMasked.fasta"),
+    output:
+        gff=join(result_dir, "{samples}_braker/trna.gff3"),
+    params:
+        rname="trnascan",
+    shell:
+        """
+        module load trnascan-se/2.0.9
+        tRNAscan-SE -j {output.gff} {input.fa}
         """
 
 # Rename gene IDs with custom ID
