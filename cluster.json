@@ -31,4 +31,10 @@
               "partition": "norm",
               "threads": "2",
       },
+      "trnascan": {
+              "mem": "32g",
+              "time": "24:00:00",
+              "partition": "norm",
+              "threads": "2",
+      },
 }
