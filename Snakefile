@@ -25,7 +25,7 @@ rule All:
         expand(join(result_dir,"{samples}.fasta.out.gff"),samples=SAMPLE),
 
         # braker files
-        expand(join(result_dir, "{samples}_braker/trna.gff3"),samples=SAMPLE),
+#        expand(join(result_dir, "{samples}_braker/trna.gff3"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.gff3"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.aa"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker/braker.codingseq"),samples=SAMPLE),
@@ -122,18 +122,18 @@ rule braker:
         --gff3 --threads=8 --rnaseq_sets_ids={params.rna_list}  \
         --rnaseq_sets_dir={params.rna_dir}
         """
-rule trnascan:
-    input:
-        fa=join(result_dir, "{samples}.softMasked.fasta"),
-    output:
-        gff=join(result_dir, "{samples}_braker/trna.gff3"),
-    params:
-        rname="trnascan",
-    shell:
-        """
-        module load trnascan-se/2.0.9
-        tRNAscan-SE -j {output.gff} {input.fa}
-        """
+#rule trnascan:
+#    input:
+#        fa=join(result_dir, "{samples}.softMasked.fasta"),
+#    output:
+#        gff=join(result_dir, "{samples}_braker/trna.gff3"),
+#    params:
+#        rname="trnascan",
+#    shell:
+#        """
+#        module load trnascan-se/2.0.9
+#        tRNAscan-SE -j {output.gff} {input.fa}
+#        """
 
 
 # Rename gene IDs with custom ID
@@ -190,10 +190,10 @@ rule gff_annot:
 # Clean & convert gff to gtf for use in RNA-seek
 rule gff2gtf:
     input:
-        gff1=join(result_dir, "{samples}_braker/trna.gff3"),
+#        gff1=join(result_dir, "{samples}_braker/trna.gff3"),
         gff2=join(result_dir,"{samples}_braker.functional.gff3"),
     output:
-        gff=temp(join(result_dir,"{samples}_braker.functional.gff")),
+#        gff=temp(join(result_dir,"{samples}_braker.functional.gff")),
         gtf=join(result_dir,"{samples}_braker.functional.gtf"),
         clean=join(result_dir,"{samples}_braker.functional.clean.gtf"),
     params:
@@ -201,7 +201,7 @@ rule gff2gtf:
     shell:
         """
         module load agat/1.2.0 python
-        agat_sp_merge_annotations.pl --gff {input.gff1} --gff {input.gff2} --out (output.gff)
-        agat_convert_sp_gff2gtf.pl --gff {output.gff} -o {output.gtf}
+#        agat_sp_merge_annotations.pl --gff {input.gff1} --gff {input.gff2} --out (output.gff)
+        agat_convert_sp_gff2gtf.pl --gff {input.gff2} -o {output.gtf}
         python /data/OpenOmics/references/brakerMake/clean_gtf.py {output.gtf} > {output.clean}
         """
