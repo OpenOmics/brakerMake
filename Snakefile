@@ -15,7 +15,7 @@ os.symlink(protein_file, os.path.join(input_dir,"uniprot.faa"))
 
 rna_list = config["rna_list"]
 
-PROTS = list(glob_wildcards(join(input_dir, "{prots}.faa")))[0]
+PROT = list(glob_wildcards(join(input_dir, "{prots}.faa")))[0]
 SAMPLE = list(glob_wildcards(join(input_dir, "{ids}.fasta")))[0]
 
 print(SAMPLE)
