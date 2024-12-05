@@ -4,17 +4,22 @@
 ###########################################################################
 from os.path import join
 from snakemake.io import expand, glob_wildcards
+import os
 
 result_dir = config["result_dir"]
 input_dir = config["input_dir"]
 rna_dir = config["rna_dir"]
 
 protein_file = config["protein_file"]
+os.symlink(protein_file, os.path.join(input_dir,"uniprot.faa"))
+
 rna_list = config["rna_list"]
 
+PROTS = list(glob_wildcards(join(input_dir, "{prots}.faa")))[0]
 SAMPLE = list(glob_wildcards(join(input_dir, "{ids}.fasta")))[0]
 
 print(SAMPLE)
+print(PROTS)
 
 rule All:
     input:
@@ -25,14 +30,21 @@ rule All:
         expand(join(result_dir,"{samples}.fasta.out.gff"),samples=SAMPLE),
 
         # braker files
-#        expand(join(result_dir, "{samples}_braker/trna.gff3"),samples=SAMPLE),
-        expand(join(result_dir,"{samples}_braker/braker.gff3"),samples=SAMPLE),
-        expand(join(result_dir,"{samples}_braker/braker.aa"),samples=SAMPLE),
-        expand(join(result_dir,"{samples}_braker/braker.codingseq"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}_{prots}/braker.gff3"),samples=SAMPLE,prots=PROT),
+        expand(join(result_dir,"{samples}_{prots}/braker.aa"),samples=SAMPLE,prots=PROT),
+        expand(join(result_dir,"{samples}_{prots}/braker.codingseq"),samples=SAMPLE,prots=PROT),
+        expand(join(result_dir,"{samples}_{prots}_norna/braker.gff3"),samples=SAMPLE,prots=PROT),
+        expand(join(result_dir,"{samples}_{prots}_norna/braker.aa"),samples=SAMPLE,prots=PROT),
+        expand(join(result_dir,"{samples}_{prots}_norna/braker.codingseq"),samples=SAMPLE,prots=PROT),
+
+        # merge files
+        expand(join(result_dir,"{samples}_merge.gff3"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}_merge.aa"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}_merge.cds"),samples=SAMPLE),
 
         # renamed file
         expand(join(result_dir,"{samples}_braker.gff3"),samples=SAMPLE),
-        expand(join(result_dir,"{samples}_braker.prot"),samples=SAMPLE),
+        expand(join(result_dir,"{samples}_braker.aa"),samples=SAMPLE),
         expand(join(result_dir,"{samples}_braker.cds"),samples=SAMPLE),
 
         # functional file
@@ -102,14 +114,15 @@ rule softMask:
 rule braker:
     input:
         fa=join(result_dir, "{samples}.softMasked.fasta"),
+        prot=join(input_dir,"{prots}.faa"),
     output:
-        gff=join(result_dir, "{samples}_braker/braker.gff3"),
-        aa=join(result_dir, "{samples}_braker/braker.aa"),
-        cds=join(result_dir, "{samples}_braker/braker.codingseq"),
+        gff=join(result_dir, "{samples}_{prots}/braker.gff3"),
+        aa=join(result_dir, "{samples}_{prots}/braker.aa"),
+        cds=join(result_dir, "{samples}_{prots}/braker.codingseq"),
     params:
         rname="braker",
         species_id="{samples}",
-        out_dir=join(result_dir,"{samples}_braker"),
+        out_dir=join(result_dir,"{samples}_{prots}"),
         rna_dir=rna_dir,
         rna_list=rna_list,
         prot=protein_file,
@@ -118,34 +131,75 @@ rule braker:
         module load braker
         mkdir -p {params.out_dir}
         braker.pl --genome={input.fa} --useexisting --species={params.species_id} \
-        --prot_seq={params.prot} --workingdir={params.out_dir} \
+        --prot_seq={input.prot} --workingdir={params.out_dir} \
         --gff3 --threads=8 --rnaseq_sets_ids={params.rna_list}  \
         --rnaseq_sets_dir={params.rna_dir}
         """
-#rule trnascan:
-#    input:
-#        fa=join(result_dir, "{samples}.softMasked.fasta"),
-#    output:
-#        gff=join(result_dir, "{samples}_braker/trna.gff3"),
-#    params:
-#        rname="trnascan",
-#    shell:
-#        """
-#        module load trnascan-se/2.0.9
-#        tRNAscan-SE -j {output.gff} {input.fa}
-#        """
 
+rule braker_norna:
+    input:
+        fa=join(result_dir, "{samples}.softMasked.fasta"),
+        prot=join(input_dir,"{prots}.faa"),
+    output:
+        gff=join(result_dir, "{samples}_{prots}_norna/braker.gff3"),
+        aa=join(result_dir, "{samples}_{prots}_norna/braker.aa"),
+        cds=join(result_dir, "{samples}_{prots}_norna/braker.codingseq"),
+    params:
+        rname="braker_norna",
+        species_id="{samples}",
+        out_dir=join(result_dir,"{samples}_{prots}_norna"),
+        rna_dir=rna_dir,
+        rna_list=rna_list,
+        prot=protein_file,
+    shell:
+        """
+        module load braker
+        mkdir -p {params.out_dir}
+        braker.pl --genome={input.fa} --useexisting --species={params.species_id} \
+        --prot_seq={input.prot} --workingdir={params.out_dir} \
+        --gff3 --threads=8
+        """
+
+rule gff_merge:
+    input:
+        gff1=expand(join(result_dir, "{{samples}}_{prots}/braker.gff3"),prots=PROT),
+        gff2=expand(join(result_dir, "{{samples}}_{prots}_norna/braker.gff3"),prots=PROT),
+    output:
+        gff=join(results_dir,"{samples}_merge.gff3"),
+    params:
+        rname="gff_merge",
+        gff1=" --gff ".join(expand(join(result_dir, "{{samples}}_{prots}/braker.gff3"),prots=PROT))
+        gff2=" --gff ".join(expand(join(result_dir, "{{samples}}_{prots}_norna/braker.gff3"),prots=PROT))
+    shell:
+        """
+        module load agat/1.2.0 python
+        agat_sp_merge_annotations.pl --gff {params.gff1} --gff {params.gff2} --out {output.gff}
+        """
+
+rule gffread:
+    input:
+        gff=join(results_dir,"{samples}_merge.gff3"),
+        fa=join(input_dir, "{samples}.fasta"),
+    output:
+        aa=join(results_dir,"{samples}_merge.aa"),
+        cds=join(results_dir,"{samples}_merge.cds"),
+    params:
+        rname="gffread",
+    shell:
+        """
+        /data/OpenOmics/references/brakerMake/gffread/gffread -g {input.fa} -y {output.aa} -x {output.cds} {input.gff}
+        """
 
 # Rename gene IDs with custom ID
 rule gff_rename:
     input:
-        gff=join(result_dir, "{samples}_braker/braker.gff3"),
-        aa=join(result_dir, "{samples}_braker/braker.aa"),
-        cds=join(result_dir, "{samples}_braker/braker.codingseq"),
+        gff=join(result_dir, "{samples}_merge/braker.gff3"),
+        aa=join(result_dir, "{samples}_merge/braker.aa"),
+        cds=join(result_dir, "{samples}_merge/braker.cds"),
     output:
         map=temp(join(result_dir, "{samples}.map")),
         gff=join(result_dir, "{samples}_braker.gff3"),
-        aa=join(result_dir, "{samples}_braker.prot"),
+        aa=join(result_dir, "{samples}_braker.aa"),
         cds=join(result_dir, "{samples}_braker.cds"),
     params:
         species_id="{samples}",
@@ -167,7 +221,7 @@ rule gff_rename:
 rule gff_annot:
     input:
         gff=join(result_dir, "{samples}_braker.gff3"),
-        prot=join(result_dir, "{samples}_braker.prot"),
+        prot=join(result_dir, "{samples}_braker.aa"),
         cds=join(result_dir, "{samples}_braker.cds"),
     output:
         gff=join(result_dir, "{samples}_braker.functional.gff3"),
@@ -190,10 +244,8 @@ rule gff_annot:
 # Clean & convert gff to gtf for use in RNA-seek
 rule gff2gtf:
     input:
-#        gff1=join(result_dir, "{samples}_braker/trna.gff3"),
-        gff2=join(result_dir,"{samples}_braker.functional.gff3"),
+        gff=join(result_dir,"{samples}_braker.functional.gff3"),
     output:
-#        gff=temp(join(result_dir,"{samples}_braker.functional.gff")),
         gtf=join(result_dir,"{samples}_braker.functional.gtf"),
         clean=join(result_dir,"{samples}_braker.functional.clean.gtf"),
     params:
@@ -201,7 +253,6 @@ rule gff2gtf:
     shell:
         """
         module load agat/1.2.0 python
-#        agat_sp_merge_annotations.pl --gff {input.gff1} --gff {input.gff2} --out (output.gff)
-        agat_convert_sp_gff2gtf.pl --gff {input.gff2} -o {output.gtf}
+        agat_convert_sp_gff2gtf.pl --gff {input.gff} -o {output.gtf}
         python /data/OpenOmics/references/brakerMake/clean_gtf.py {output.gtf} > {output.clean}
         """
