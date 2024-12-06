@@ -11,7 +11,8 @@ input_dir = config["input_dir"]
 rna_dir = config["rna_dir"]
 
 protein_file = config["protein_file"]
-os.symlink(protein_file, os.path.join(input_dir,"uniprot.faa"))
+if os.path.isfile(os.path.join(input_dir,"uniprot.faa")) == False:
+        os.symlink(protein_file, os.path.join(input_dir,"uniprot.faa"))
 
 rna_list = config["rna_list"]
 
@@ -19,7 +20,7 @@ PROT = list(glob_wildcards(join(input_dir, "{prots}.faa")))[0]
 SAMPLE = list(glob_wildcards(join(input_dir, "{ids}.fasta")))[0]
 
 print(SAMPLE)
-print(PROTS)
+print(PROT)
 
 rule All:
     input:
@@ -165,11 +166,11 @@ rule gff_merge:
         gff1=expand(join(result_dir, "{{samples}}_{prots}/braker.gff3"),prots=PROT),
         gff2=expand(join(result_dir, "{{samples}}_{prots}_norna/braker.gff3"),prots=PROT),
     output:
-        gff=join(results_dir,"{samples}_merge.gff3"),
+        gff=join(result_dir,"{samples}_merge.gff3"),
     params:
         rname="gff_merge",
-        gff1=" --gff ".join(expand(join(result_dir, "{{samples}}_{prots}/braker.gff3"),prots=PROT))
-        gff2=" --gff ".join(expand(join(result_dir, "{{samples}}_{prots}_norna/braker.gff3"),prots=PROT))
+        gff1=" --gff ".join(expand(join(result_dir, "{{samples}}_{prots}/braker.gff3"),prots=PROT)),
+        gff2=" --gff ".join(expand(join(result_dir, "{{samples}}_{prots}_norna/braker.gff3"),prots=PROT)),
     shell:
         """
         module load agat/1.2.0 python
@@ -178,11 +179,11 @@ rule gff_merge:
 
 rule gffread:
     input:
-        gff=join(results_dir,"{samples}_merge.gff3"),
+        gff=join(result_dir,"{samples}_merge.gff3"),
         fa=join(input_dir, "{samples}.fasta"),
     output:
-        aa=join(results_dir,"{samples}_merge.aa"),
-        cds=join(results_dir,"{samples}_merge.cds"),
+        aa=join(result_dir,"{samples}_merge.aa"),
+        cds=join(result_dir,"{samples}_merge.cds"),
     params:
         rname="gffread",
     shell:
@@ -193,9 +194,9 @@ rule gffread:
 # Rename gene IDs with custom ID
 rule gff_rename:
     input:
-        gff=join(result_dir, "{samples}_merge/braker.gff3"),
-        aa=join(result_dir, "{samples}_merge/braker.aa"),
-        cds=join(result_dir, "{samples}_merge/braker.cds"),
+        gff=join(result_dir, "{samples}_merge.gff3"),
+        aa=join(result_dir, "{samples}_merge.aa"),
+        cds=join(result_dir, "{samples}_merge.cds"),
     output:
         map=temp(join(result_dir, "{samples}.map")),
         gff=join(result_dir, "{samples}_braker.gff3"),
